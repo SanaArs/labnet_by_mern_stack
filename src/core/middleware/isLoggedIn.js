@@ -25,8 +25,3 @@ const isLoggedin = (req, res, next) => {
 };
 
 export { isLoggedin };
-
-import jwt from "jsonwebtoken";
-const isLoggedIn = (req, res, next) => {
-
-}
