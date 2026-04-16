@@ -66,31 +66,36 @@ const loginUser = async(req, res) => {
 }
 
 const updateUser = async(req, res) => {
-    const id = req.params.id;
-
     try {
-        const user = await User.findById(id);
+        const userId = req.user.id; // ✅ from token
+
+        const user = await User.findById(userId);
 
         if (!user) {
-            return res.status(404).json({ message: "User does not exist" });
-        }
-
-        // ❌ block email update
-        if (req.body.email) {
-            return res.status(400).json({
-                message: "You can't update email"
+            return res.status(404).json({
+                message: "User not found"
             });
         }
 
+        // ❌ Block restricted fields
+        const restrictedFields = ["email", "password", "role"];
+
+        for (let field of restrictedFields) {
+            if (req.body[field]) {
+                return res.status(403).json({
+                    message: `You can't update ${field}`
+                });
+            }
+        }
+
+        // ✅ Allowed fields
         const allowedFields = [
             "first_name",
             "last_name",
             "gender",
             "date_of_birth",
             "address",
-            "phone",
-            "password",
-            "role"
+            "phone"
         ];
 
         allowedFields.forEach(field => {
@@ -109,10 +114,10 @@ const updateUser = async(req, res) => {
             user: safeUser
         });
 
-    } catch (err) {
+    } catch (error) {
         return res.status(500).json({
-            message: "Error in updating user",
-            error: err.message
+            message: "Update failed",
+            error: error.message
         });
     }
 };
